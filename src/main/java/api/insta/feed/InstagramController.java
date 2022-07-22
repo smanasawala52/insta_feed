@@ -5,7 +5,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -15,6 +14,7 @@ import javax.websocket.server.PathParam;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
@@ -49,8 +49,8 @@ public class InstagramController {
 
 			int responseCode = con.getResponseCode();
 			// System.out.println(con.getHeaderFields());
-			System.out.println("\nSending 'GET' request to URL : " + obj);
-			System.out.println("Response Code : " + responseCode);
+//			System.out.println("\nSending 'GET' request to URL : " + obj);
+//			System.out.println("Response Code : " + responseCode);
 			// reader = new InputStreamReader(con.getInputStream());
 			BufferedReader in = new BufferedReader(new InputStreamReader(new GZIPInputStream(con.getInputStream())));
 			String inputLine = "";
@@ -61,19 +61,24 @@ public class InstagramController {
 			in.close();
 			String line = response.toString();
 			// print in String
-			System.out.println(line);
+//			System.out.println(line);
 			JSONObject jsonUserInfo = new JSONObject(line);
 			String owner = jsonUserInfo.getJSONObject("data").getJSONObject("user").getString("id");
 			modelAndView.addObject("owner", owner);
 			modelAndView.addObject("username", username);
-			modelAndView.addAllObjects(populateInstaUserFollowerPage(owner, "").getModelMap());
+			Follower follower = populateInstaUserFollowerPage(owner, "");
+			if (follower != null && follower.getFollowers() != null) {
+				modelAndView.addObject("followers", follower.getFollowers());
+				modelAndView.addObject("maxId", follower.getMaxId() + "^");
+				modelAndView.addObject("owner", follower.getOwner() + "^");
+			}
 			modelAndView.addObject("followers_count", jsonUserInfo.getJSONObject("data").getJSONObject("user")
 					.getJSONObject("edge_followed_by").getString("count"));
 
 			modelAndView.addObject("biography",
 					jsonUserInfo.getJSONObject("data").getJSONObject("user").getString("biography"));
-			modelAndView.addObject("profilePicUrl",
-					jsonUserInfo.getJSONObject("data").getJSONObject("user").getString("profile_pic_url"));
+			modelAndView.addObject("profilePicUrl", jsonUserInfo.getJSONObject("data").getJSONObject("user")
+					.getString("profile_pic_url").replaceAll("\\u0026", "&"));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -81,14 +86,16 @@ public class InstagramController {
 		return modelAndView;
 	}
 
-	@GetMapping("/instaFollowersPage/{owner}/{maxId}")
-	public ModelAndView populateInstaUserFollowerPage(@PathParam("owner") String owner,
-			@PathParam("maxId") String maxId) {
-		ModelAndView modelAndView = new ModelAndView("instadetails");
+	@GetMapping("/instaFollowers/{owner}/{maxId}")
+	public Follower populateInstaUserFollowerPage(@PathVariable("owner") String owner,
+			@PathVariable("maxId") String maxId) {
+		Follower followerResult = new Follower();
 		try {
 			// basic info
-			URL obj = new URL("https://i.instagram.com/api/v1/friendships/" + owner
-					+ "/followers/?count=12&search_surface=follow_list_page&max_id=" + maxId);
+			URL obj = new URL("https://i.instagram.com/api/v1/friendships/" + owner.replace("^", "").replace("%5E", "")
+					+ "/followers/?count=12&search_surface=follow_list_page&max_id="
+					+ maxId.replace("^", "").replace("%5E", ""));
+//			System.out.println(obj);
 			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 			// optional default is GET
 			con.setDoOutput(true);
@@ -116,41 +123,38 @@ public class InstagramController {
 			in.close();
 			String line = response.toString();
 			// print in String
-			System.out.println(line);
+			// System.out.println(line);
 			JSONObject jsonUserInfo = new JSONObject(line);
-			Map<String, List<String>> followers = new LinkedHashMap<>();
+			List<List<String>> followers = new ArrayList<>();
 			JSONArray followerJson = jsonUserInfo.getJSONArray("users");
-			modelAndView.addObject("owner", owner);
+			followerResult.setOwner(owner);
 			for (int i = 0; i < followerJson.length(); i++) {
 				JSONObject object = (JSONObject) followerJson.get(i);
 				try {
 					String pkFollower = object.getString("pk");
 					String usernameFollower = object.getString("username");
 					String fullNameFollower = object.getString("full_name");
-					String profilePicUrlFollower = object.getString("profile_pic_url");
-					List<String> follower = followers.get(pkFollower);
-					if (follower == null) {
-						follower = new ArrayList<String>();
-					}
+					String profilePicUrlFollower = object.getString("profile_pic_url").replaceAll("\\u0026", "&");
+					List<String> follower = new ArrayList<String>();
 					follower.add(pkFollower);
 					follower.add(usernameFollower);
 					follower.add(fullNameFollower);
 					if (profilePicUrlFollower != null) {
 						follower.add(profilePicUrlFollower);
 					}
-					followers.put(pkFollower, follower);
+					followers.add(follower);
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
 			}
-			modelAndView.addObject("followers", followers);
-			modelAndView.addObject("maxId", jsonUserInfo.getString("next_max_id"));
-			System.out.println(followers);
+			followerResult.setFollowers(followers);
+			followerResult.setMaxId(jsonUserInfo.getString("next_max_id"));
+			// System.out.println(followers);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return modelAndView;
+		return followerResult;
 	}
 
 }
