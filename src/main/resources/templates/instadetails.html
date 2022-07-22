@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <!-- Basic -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- Mobile Metas -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <!-- Site Metas -->
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title th:text="${slug}"></title>
+    <!-- slider stylesheet -->
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.1.3/assets/owl.carousel.min.css" />
+    <!-- bootstrap core css -->
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.css" />
+    <!-- fonts style -->
+    <link href="https://fonts.googleapis.com/css?family=Poppins:400,700&display=swap" rel="stylesheet" />
+    <!-- Custom styles for this template -->
+    <link href="/css/style.css" rel="stylesheet" />
+    <!-- responsive style -->
+    <link href="/css/responsive.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div th:insert="components/header :: header-panel"></div>
+    <section class="service_section layout_padding ">
+      <div class="container">
+        <div class="">
+          <!-- filters -->
+          <div class="card-deck">
+          <div class="card">
+				<!-- Empty for keeping formatted -->
+				<div class="card-body">
+					<table>
+	        <tr>
+	        <td>
+	       	 <img th:src="${profilePicUrl}"  width="150px" height="150px" />
+	        </td><td>
+	        	<span th:text="${username}"></span>
+	        	<br><span class="text-muted" th:text="${biography}"></span>
+	        	</td>
+	        	</tr>
+	        </table>
+	        <div>
+	        <br>
+		        <button onclick="javascript:document.getElementById('mediaList').style.display='none';document.getElementById('followerList').style.display='block';">
+		        	Followers: <span th:text="${followers_count}"></span>
+	        	</button>
+	        </div>	        
+	        <br>
+	        <div id="mediaList" style="display:none;">
+	        Media
+	           <table id="deliveries" th:if="${!#lists.isEmpty(mediaList)}">
+	            <tbody>
+	               <tr th:each="mediaTemp,iterStat: ${mediaList}" >
+	               <td><img  th:src="${mediaTemp}" width="250px" height="250px"></td>
+	               </tr>
+	               </tbody>
+               </table>
+            </div>
+            <div id="followerList" style="display:none;">
+            Followers
+             <table id="deliveries" th:if="${!#lists.isEmpty(followers)}">
+	            <tbody>
+	               <tr th:each="followerTemp,iterStat: ${followers}" >
+	               <td><img  th:src="${followerTemp.value[3]}" width="100px" height="100px"></td>
+	               <td>
+	               		<div th:text="${followerTemp.value[1]}"></div>
+	               		<div class="text-muted" th:text="${followerTemp.value[2]}"></div>
+	               	</td>
+	               </tr>
+	               </tbody>
+               </table>
+               <div th:if="${!#strings.isEmpty(maxId)}">
+               <form>
+               <input type="hidden" name="maxId" id="maxId" th:value="${maxId}" />
+               <input type="hidden" name="owner" id="owner" th:value="${owner}" />
+	        	</form>
+               <button onclick="javascript:loadmoreFollowers()">
+		        	Load More
+	        	</button>
+               </div> 
+            </div>
+            <br>
+            <script>
+            	function loadmoreFollowers(){
+            		var owner = document.getElementById("owner").value;
+            		var maxId = document.getElementById("maxId").value;
+            		var url = "/instaFollowers/"+owner+"/"+maxId;
+            		window.location.href=url;
+            	}
+            </script>
+				</div>
+			</div>
+							</div>
+							</div>
+							</div>
+							</section>
+				<div th:insert="components/footer :: footer-panel"></div>
+			</body>
+		</html>

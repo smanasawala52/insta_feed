@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <!-- Basic -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- Mobile Metas -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <!-- Site Metas -->
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title th:text="${slug}"></title>
+    <!-- slider stylesheet -->
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.1.3/assets/owl.carousel.min.css" />
+    <!-- bootstrap core css -->
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.css" />
+    <!-- fonts style -->
+    <link href="https://fonts.googleapis.com/css?family=Poppins:400,700&display=swap" rel="stylesheet" />
+    <!-- Custom styles for this template -->
+    <link href="css/style.css" rel="stylesheet" />
+    <!-- responsive style -->
+    <link href="css/responsive.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div th:insert="components/header :: header-panel"></div>
+    <section class="service_section layout_padding ">
+      <div class="container">
+        <div class="">
+          <!-- filters -->
+          <div class="card-deck">
+          <div class="card">
+				<!-- Empty for keeping formatted -->
+				<div class="card-body">
+					<h2 class="custom_heading">Instagram</h2>
+					<p class="custom_heading-text">Enter username to see basic data
+					<form action="/instadetails" method="GET">
+						Username: <input type="text" name="username">
+						<input type="submit">
+					</form>
+					</p>
+				</div>
+			</div>
+            <div class="card" style="text-align:left;">
+              <div class="card-body">
+								</div>
+							</div>
+							</div>
+							</div>
+							</div>
+							</section>
+				<div th:insert="components/footer :: footer-panel"></div>
+			</body>
+		</html>
