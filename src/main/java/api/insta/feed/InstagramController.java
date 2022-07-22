@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -77,13 +78,50 @@ public class InstagramController {
 
 			modelAndView.addObject("biography",
 					jsonUserInfo.getJSONObject("data").getJSONObject("user").getString("biography"));
-			modelAndView.addObject("profilePicUrl", jsonUserInfo.getJSONObject("data").getJSONObject("user")
-					.getString("profile_pic_url").replaceAll("\\u0026", "&"));
+			String profilePicUrl = jsonUserInfo.getJSONObject("data").getJSONObject("user").getString("profile_pic_url")
+					.replaceAll("\\u0026", "&");
+			modelAndView.addObject("profilePicUrl", profilePicUrl);
+			String imageBytes = getImageBytes(profilePicUrl);
+			modelAndView.addObject("profilePicUrlData", imageBytes);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return modelAndView;
+	}
+
+	private String getImageBytes(String profilePicUrl) {
+		try {
+			System.out.println(profilePicUrl);
+			URL obj = new URL(profilePicUrl);
+//		System.out.println(obj);
+			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+			// optional default is GET
+			con.setDoOutput(true);
+			con.setRequestMethod("GET");
+			// add request header
+			con.setRequestProperty("user-agent",
+					"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36");
+			int responseCode = con.getResponseCode();
+			// System.out.println(con.getHeaderFields());
+			System.out.println("\nSending 'GET' request to URL : " + obj);
+			System.out.println("Response Code : " + responseCode);
+			// reader = new InputStreamReader(con.getInputStream());
+			BufferedReader in = new BufferedReader(new InputStreamReader((con.getInputStream())));
+			String inputLine = "";
+			StringBuffer response = new StringBuffer();
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
+			in.close();
+			String line = response.toString();
+			// System.out.println(line);
+			line = new String(Base64.getEncoder().encode(line.getBytes()));
+			return line;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	@GetMapping("/instaFollowers/{owner}/{maxId}")

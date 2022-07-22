@@ -35,7 +35,7 @@
 					<table>
 	        <tr>
 	        <td>
-	       	 <img th:src="${profilePicUrl}"  width="150px" height="150px" />
+	       	 <img th:src="@{'data:image/jpeg;base64,'+${profilePicUrlData}}"  width="150px" height="150px" />
 	        </td><td>
 	        	<span th:text="${username}"></span>
 	        	<br><span class="text-muted" th:text="${biography}"></span>
