@@ -96,7 +96,7 @@
             		    	$('#deliveries tr:last').after('<tr><td><img src="'+item[3]+'" width="100px" height="100px"></td><td><div>'+item[1]+'</div><div class="text-muted">'+item[2]+'</div></td></tr>');
 						});
             		    $('#maxId').val(data.maxId);
-            		    if(data.maxId==null){
+            		    if(data.maxId==null || data.maxId==''){
             		    	$('#loadmore').css("display", "none");
             		    }
             		    
