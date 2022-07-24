@@ -66,13 +66,17 @@ public class InstagramController {
 			JSONObject jsonUserInfo = new JSONObject(line);
 			String owner = jsonUserInfo.getJSONObject("data").getJSONObject("user").getString("id");
 			modelAndView.addObject("owner", owner);
+			boolean isPrivate = jsonUserInfo.getJSONObject("data").getJSONObject("user").getBoolean("is_private");
+			modelAndView.addObject("isPrivate", isPrivate);
 			modelAndView.addObject("username", username);
+			// if (!isPrivate) {
 			Follower follower = populateInstaUserFollowerPage(owner, "");
 			if (follower != null && follower.getFollowers() != null) {
 				modelAndView.addObject("followers", follower.getFollowers());
 				modelAndView.addObject("maxId", follower.getMaxId() + "^");
 				modelAndView.addObject("owner", follower.getOwner() + "^");
 			}
+			// }
 			modelAndView.addObject("followers_count", jsonUserInfo.getJSONObject("data").getJSONObject("user")
 					.getJSONObject("edge_followed_by").getString("count"));
 
