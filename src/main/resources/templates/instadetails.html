@@ -39,6 +39,7 @@
 	        </td><td>
 	        	<span th:text="${username}"></span>
 	        	<br><span class="text-muted" th:text="${biography}"></span>
+	        	<br><span class="text-muted" th:if="${isPrivate}">This Account is Private</span>
 	        	</td>
 	        	</tr>
 	        </table>
