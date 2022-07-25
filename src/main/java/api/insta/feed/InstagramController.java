@@ -14,6 +14,7 @@ import javax.websocket.server.PathParam;
 
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,6 +23,9 @@ import org.springframework.web.servlet.ModelAndView;
 
 @RestController
 public class InstagramController {
+
+	@Autowired
+	private FollowerRepository followerRepository;
 
 	@GetMapping("/")
 	public ModelAndView getHome(@RequestParam final Map<String, String> queryParams) {
@@ -62,12 +66,18 @@ public class InstagramController {
 			in.close();
 			String line = response.toString();
 			// print in String
-//			System.out.println(line);
+			System.out.println(line);
 			JSONObject jsonUserInfo = new JSONObject(line);
 			String owner = jsonUserInfo.getJSONObject("data").getJSONObject("user").getString("id");
 			modelAndView.addObject("owner", owner);
 			boolean isPrivate = jsonUserInfo.getJSONObject("data").getJSONObject("user").getBoolean("is_private");
 			modelAndView.addObject("isPrivate", isPrivate);
+			boolean isFollowedByViewer = jsonUserInfo.getJSONObject("data").getJSONObject("user")
+					.getBoolean("followed_by_viewer");
+			modelAndView.addObject("isFollowedByViewer", isFollowedByViewer);
+			boolean isRequestedByViewer = jsonUserInfo.getJSONObject("data").getJSONObject("user")
+					.getBoolean("requested_by_viewer");
+			modelAndView.addObject("isRequestedByViewer", isRequestedByViewer);
 			modelAndView.addObject("username", username);
 			// if (!isPrivate) {
 			Follower follower = populateInstaUserFollowerPage(owner, "");
@@ -128,6 +138,36 @@ public class InstagramController {
 		return null;
 	}
 
+	@GetMapping("/follow/{owner}/{username}")
+	public ModelAndView follow(@PathVariable("owner") String owner, @PathVariable("username") String username) {
+		try {
+			// basic info
+			URL obj = new URL("https://www.instagram.com/web/friendships/" + owner.replace("^", "").replace("%5E", "")
+					+ "/follow/");
+			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+			// optional default is GET
+			con.setDoOutput(true);
+			con.setRequestProperty("Content-Type", "application/json");
+			con.setRequestMethod("GET");
+			// add request header
+			con.setRequestProperty("Accept-Encoding", "gzip");
+			con.setRequestProperty("cookie",
+					"sessionid=8485620030:WM9DLpiiVsYD4E:11:AYf2u72g7nTjxWXW-v4X-Z46fvCADtb4yQd-ZxZJFQ;");
+			con.setRequestProperty("user-agent",
+					"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36");
+			con.setRequestProperty("x-ig-app-id", "936619743392459");
+
+			int responseCode = con.getResponseCode();
+			// System.out.println(con.getHeaderFields());
+			System.out.println("\nSending 'GET' request to URL : " + obj);
+			System.out.println("Response Code : " + responseCode);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return new ModelAndView("redirect:/instadetails?username=" + username);
+	}
+
 	@GetMapping("/instaFollowers/{owner}/{maxId}")
 	public Follower populateInstaUserFollowerPage(@PathVariable("owner") String owner,
 			@PathVariable("maxId") String maxId) {
@@ -168,6 +208,7 @@ public class InstagramController {
 			// System.out.println(line);
 			JSONObject jsonUserInfo = new JSONObject(line);
 			List<List<String>> followers = new ArrayList<>();
+			List<FollowerDB> followersdb = new ArrayList<>();
 			JSONArray followerJson = jsonUserInfo.getJSONArray("users");
 			followerResult.setOwner(owner);
 			for (int i = 0; i < followerJson.length(); i++) {
@@ -185,12 +226,16 @@ public class InstagramController {
 						follower.add(profilePicUrlFollower);
 					}
 					followers.add(follower);
+					FollowerDB followerDb = new FollowerDB();
+					followersdb.add(followerDb);
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
 			}
 			followerResult.setFollowers(followers);
 			followerResult.setMaxId(jsonUserInfo.getString("next_max_id"));
+
+			followerRepository.saveAll(followersdb);
 			// System.out.println(followers);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
