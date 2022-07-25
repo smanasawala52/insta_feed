@@ -80,6 +80,7 @@
                <form>
                <input type="hidden" name="maxId" id="maxId" th:value="${maxId}" />
                <input type="hidden" name="owner" id="owner" th:value="${owner}" />
+               <input type="hidden" name="username" id="username" th:value="${username}" />
 	        	</form>
                <button  th:if="${!#lists.isEmpty(followers)}" id="loadmore" onclick="javascript:loadmoreFollowers()">
 		        	Load More
@@ -91,7 +92,8 @@
             	function loadmoreFollowers(){
             		var owner = document.getElementById("owner").value;
             		var maxId = document.getElementById("maxId").value;
-            		var url = "/instaFollowers/"+owner+"/"+maxId;
+            		var username = document.getElementById("username").value;
+            		var url = "/instaFollowers/"+owner+"/"+maxId+"/"+username;
             		//window.location.href=url;
             		$.get(url, function(data, status){
             		    //alert("Data: " + data.followers + "\nStatus: " + status);

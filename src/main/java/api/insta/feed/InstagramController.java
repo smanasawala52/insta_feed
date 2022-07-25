@@ -80,7 +80,7 @@ public class InstagramController {
 			modelAndView.addObject("isRequestedByViewer", isRequestedByViewer);
 			modelAndView.addObject("username", username);
 			// if (!isPrivate) {
-			Follower follower = populateInstaUserFollowerPage(owner, "");
+			Follower follower = populateInstaUserFollowerPage(owner, "", username);
 			if (follower != null && follower.getFollowers() != null) {
 				modelAndView.addObject("followers", follower.getFollowers());
 				modelAndView.addObject("maxId", follower.getMaxId() + "^");
@@ -168,13 +168,14 @@ public class InstagramController {
 		return new ModelAndView("redirect:/instadetails?username=" + username);
 	}
 
-	@GetMapping("/instaFollowers/{owner}/{maxId}")
+	@GetMapping("/instaFollowers/{owner}/{maxId}/{username}")
 	public Follower populateInstaUserFollowerPage(@PathVariable("owner") String owner,
-			@PathVariable("maxId") String maxId) {
+			@PathVariable("maxId") String maxId, @PathVariable("username") String username) {
 		Follower followerResult = new Follower();
 		try {
 			// basic info
-			URL obj = new URL("https://i.instagram.com/api/v1/friendships/" + owner.replace("^", "").replace("%5E", "")
+			owner = owner.replace("^", "").replace("%5E", "");
+			URL obj = new URL("https://i.instagram.com/api/v1/friendships/" + owner
 					+ "/followers/?count=12&search_surface=follow_list_page&max_id="
 					+ maxId.replace("^", "").replace("%5E", ""));
 //			System.out.println(obj);
@@ -227,6 +228,8 @@ public class InstagramController {
 					}
 					followers.add(follower);
 					FollowerDB followerDb = new FollowerDB();
+					followerDb.setUsername(username);
+					followerDb.setFollowerUsername(usernameFollower);
 					followersdb.add(followerDb);
 				} catch (Exception ex) {
 					ex.printStackTrace();
